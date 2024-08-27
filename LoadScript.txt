@@ -1,3 +1,40 @@
+-- sample directory for *.frm in development
+local root = [[C:\Users\username\frmpath]]
+
+-- utilities
+local psep = package.config:sub(1,1)
+local cat = table.concat
+local function catPath(...)
+  return (cat({...},psep):gsub("[/\\]+",psep))
+end
+
+FRM_IO = {
+  quoteFRM = function(fn)
+    local f = io.open(fn,'rb')
+    local s = f and f:read"a",f and f:close()
+    return s and "'"..s:gsub("['\\\0-\31\128-\255]",function(c)
+      return string.format([[\x%02X]],c:byte())
+    end).."'", s and s:len()
+  end,
+  fromString = function(s, loader)
+    local tmpdir = os.getenv"TEMP" or os.getenv"TMP" or "."
+    local tmpfn = cat{'_',math.random(100000,999999),os.time()}
+    tmpfn = catPath(tmpdir, tmpfn)
+    local f = io.open(tmpfn,'wb')
+    local ok = f and f:write(s) and true,f and f:close()
+    return ok and (loader or createFormFromFile)(tmpfn), os.remove(tmpfn)
+  end
+}
+
+-- make quoted string of the *.FRM file
+local quoteStr,len = FRM_IO.quoteFRM(catPath(root,"SavedFormTest.FRM"))
+
+--- print(quoteStr) and c & p quoteStr in source
+local frmStr = '<?xml version="1.0" encoding="utf-8"?><FormData><UDF1 Class="TCEForm" Encoding="Ascii85">wUx[H6G0rux4Wg:2M,}.kHln73I[-,Ef6D]wtx[@G/1/fG-lgQ,l6,gZl@pvc?RXz:zm}5aS:Hf4_=:JFfnHPC-?I_cDl2)Yu8:k#csDdJ4wHv?9!{*e2C,u=EJVWrRV06R]ajU(PV-Au!Mz(LSO,Z/q8)oeS)DQ!jP_PO*27vFyre/7O:7f)?4b^s+2)C,;,A3DYO$6)^ddvNDXwg/*Yo]ssdGP2{S6.rIV_m=L{3R8:EOv6N3$$tZvJ?jqp-;:@oS=Z6Pr;+1pEMuw-HW08,E)t{)L+T-z*kpkDc6(mxAk##jz)idt@=0*yk@lZd9]qs0B:Ce,5?4h.CffBJIaHlKRq],{03U*G9H/2lYfo_q92(zs?!4}%HK%+:o1oZ%$(/JL2BJ#Xy,^Sz4,g4TilkqpTDXYzOf$lIZQ,S:ETL2FMxA?]{5D/8+(h@tf,W2A:IfaaLL!aQ9vJeAE1-=2+W(lO{/Tvkbq3!CCVyOkbU8pfne.$2B+@iMiT%3q^F4pw0Sd$3^-mcVhrcCO[-tOm]e8B;Lk]ivHT#hIw2h3d^A3;MW5f]i3KR?O-Srco7XK@Ili_J6;[Bc@*8R%MDnLf0Lt5u%!_z]]bJhln{MvrgyPs@kX?=QcvwV],!)%4MY;=bczC/fkI5Whf4r39]iKyqzPzCpYHG^mHnuEUuVAAcvc)H#O#?c6m{K9P5Bmd2/WmSL_r-BUA$mGAXzxcf!dHcyi.E%XM-uGw!.?=akF8Dc;.2$t4Izyy0.tTy$-H6MUY5FB.%!2F{]Po;dwJq!m4yKkjIL={kcHqQ5iLFRZXP=bViSVziL.4l(@jG2^uIr2F,7M{ohaRN.]buovheM.cgxTjaC;!=(ACwRlFVC!IdRo/63ik0XbVFgxR),CGLX9}nj6kil?SqLlDR=/^KOt1#6pm7oTTA#Yn#bbgR7@Ul8oZL/-V4TUZP.Vsv;qkLdRTD7yaCS$09QJ_lYBjKQZ4)#d2]n!MIT(CU2?]IJ-rCT}!StKae(Zx==vnt(#fztLDUONK*#R8qN]2DmBqoB3lIwYssd.QpDTb7g;*Pm,SO4f:o5c@GUblUhOC-H9</UDF1></FormData>'
+
+local frm = FRM_IO.fromString(frmStr)
+if frm then frm.show()end
+
 function GetTheProcessList()
 local T = {}
   local SL=createStringlist()
