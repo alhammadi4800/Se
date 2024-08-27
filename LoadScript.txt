@@ -1,1 +1,200 @@
+-- Define UDF1 form
+UDF1 = createForm(true)
+UDF1.Caption = "Auto Hunt Manager"
+UDF1.Width = 400
+UDF1.Height = 300
 
+-- Define a ListBox
+UDF1_CEListBox1 = createListBox(UDF1)
+UDF1_CEListBox1.Left = 20
+UDF1_CEListBox1.Top = 20
+UDF1_CEListBox1.Width = 360
+UDF1_CEListBox1.Height = 120
+
+-- Define a Quit Button
+UDF1_CECustomButton4 = createButton(UDF1)
+UDF1_CECustomButton4.Left = 250
+UDF1_CECustomButton4.Top = 230
+UDF1_CECustomButton4.Width = 120
+UDF1_CECustomButton4.Caption = "Quit"
+UDF1_CECustomButton4.OnClick = function(sender)
+    -- Close the form and exit the program
+    UDF1:destroy()  -- Close the form
+    -- Exit the Cheat Engine script
+    if getMainForm() then
+        getMainForm():close()  -- Close Cheat Engine if it's the main form
+    end
+end
+
+-- Define Assign X and Y Button
+UDF1_CECustomButton5 = createButton(UDF1)
+UDF1_CECustomButton5.Left = 20
+UDF1_CECustomButton5.Top = 160
+UDF1_CECustomButton5.Width = 120
+UDF1_CECustomButton5.Caption = "Assign X and Y"
+UDF1_CECustomButton5.OnClick = function(sender)
+    -- Assign X and Y for X1
+    x1 = readInteger("[Conquer.exe+13555B0] + 504")
+    y1 = readInteger("[Conquer.exe+13555B0] + 508")
+    UDF1_CEListBox1.Items.Clear()
+    UDF1_CEListBox1.Items.Add("X1:"..x1.." Y1:"..y1)
+end
+
+-- Define Xy2 Button
+UDF1_CECustomButtonXy2 = createButton(UDF1)
+UDF1_CECustomButtonXy2.Left = 150
+UDF1_CECustomButtonXy2.Top = 160
+UDF1_CECustomButtonXy2.Width = 120
+UDF1_CECustomButtonXy2.Caption = "Xy2"
+UDF1_CECustomButtonXy2.OnClick = function(sender)
+    -- Assign X and Y for Xy2
+    x2 = readInteger("[Conquer.exe+13555B0] + 504")  -- Adjust address as needed
+    y2 = readInteger("[Conquer.exe+13555B0] + 508")  -- Adjust address as needed
+    UDF1_CEListBox1.Items.Add("X2:"..x2.." Y2:"..y2)
+end
+
+-- Define Xy3 Button
+UDF1_CECustomButtonXy3 = createButton(UDF1)
+UDF1_CECustomButtonXy3.Left = 280
+UDF1_CECustomButtonXy3.Top = 160
+UDF1_CECustomButtonXy3.Width = 120
+UDF1_CECustomButtonXy3.Caption = "Xy3"
+UDF1_CECustomButtonXy3.OnClick = function(sender)
+    -- Assign X and Y for Xy3
+    x3 = readInteger("[Conquer.exe+13555B0] + 504")  -- Adjust address as needed
+    y3 = readInteger("[Conquer.exe+13555B0] + 508")  -- Adjust address as needed
+    UDF1_CEListBox1.Items.Add("X3:"..x3.." Y3:"..y3)
+end
+
+-- Define Start Auto Hunt Button
+UDF1_CECustomButton1 = createButton(UDF1)
+UDF1_CECustomButton1.Left = 20
+UDF1_CECustomButton1.Top = 200
+UDF1_CECustomButton1.Width = 120
+UDF1_CECustomButton1.Caption = "Start Auto Hunt"
+getAutoAttachList().add("Conquer.exe")
+UDF1_CECustomButton1.OnClick = function(sender)
+    -- Start Auto Hunt logic
+    writeInteger("[Conquer.exe+139675C] + 4F3D", 1) -- AUTO
+    writeInteger("[Conquer.exe+1396FA8] + 11", 1) -- AUTO
+    writeInteger("[Conquer.exe+135587C] + 8EC", 6) -- VIP
+   -- writeInteger("00DDF4F3",450)
+end
+
+-- Define Stop Auto Hunt Button
+UDF1_CECustomButton2 = createButton(UDF1)
+UDF1_CECustomButton2.Left = 150
+UDF1_CECustomButton2.Top = 200
+UDF1_CECustomButton2.Width = 120
+UDF1_CECustomButton2.Caption = "Stop Auto Hunt"
+UDF1_CECustomButton2.OnClick = function(sender)
+    -- Stop Auto Hunt logic
+    writeInteger("[Conquer.exe+139675C] + 4F3D", 0)
+    writeInteger("[Conquer.exe+13560C8] + 11", 0)
+
+    -- Stop Timer
+    if xyTimer then
+        xyTimer.Enabled = false
+        xyTimer = nil
+    end
+end
+
+-- Define Activate XP Checkbox
+UDF1_CECheckBox1 = createCheckBox(UDF1)
+UDF1_CECheckBox1.Left = 20
+UDF1_CECheckBox1.Top = 130
+UDF1_CECheckBox1.Width = 120
+UDF1_CECheckBox1.Caption = "Activate XP"
+
+-- Timer for monitoring XP
+-- Define the base address and offset for XP
+local xpAddress = "[Conquer.exe+13794C0] + 9EC"
+local xpThreshold = 100
+
+-- Define a flag to manage the timer state
+local DoneState = false
+
+-- Function to check XP amount and perform actions
+local function checkXP(timer)
+    -- Check if the checkbox is checked
+    if UDF1_CECheckBox1.Checked then
+        -- Read the current XP amount from memory
+        local xpAmount = readInteger(xpAddress)
+
+        -- Output the XP amount to the Cheat Engine log (for debugging)
+        Auto1 = readInteger("[Conquer.exe+139675C] + 4F3D")
+        Auto2 = readInteger("[Conquer.exe+1396FA8] + 11")
+
+        if Auto1 >= 1 and Auto2 >= 1 then
+            -- Check if XP amount has reached or exceeded the threshold
+            if xpAmount >= xpThreshold then
+                -- Perform actions when XP threshold is reached
+                -- Example actions:
+                -- Stop Auto Hunt
+                writeInteger("[Conquer.exe+139675C] + 4F3D", 0)
+                writeInteger("[Conquer.exe+1396FA8] + 11", 0)
+
+                -- Press F2 five times
+                for i = 1, 5 do
+                    os.execute('start "" "C:\\F2.ahk"')
+                    sleep(100)
+                end
+                -- Reactivate Auto Hunt
+                writeInteger("[Conquer.exe+139675C] + 4F3D", 1)
+                writeInteger("[Conquer.exe+1396FA8] + 11", 1)
+
+                -- Stop the timer after performing the actions
+                DoneState = true
+            else
+                local DoneState = false
+                writeInteger("[Conquer.exe+13784C0]+74", 0)
+            end
+        end
+    end
+end
+
+-- Create and configure the timer for XP monitoring
+local xpTimer = createTimer(getMainForm())
+xpTimer.Interval = 1000  -- Check every second (1000 ms)
+xpTimer.OnTimer = checkXP
+xpTimer.Enabled = true  -- Start the timer
+
+-- Variables to hold X and Y values
+local x1, y1, x2, y2, x3, y3
+local currentXYIndex = 0
+
+if UDF1_CECheckBox1.Checked then
+-- Function to update X and Y coordinates
+   local function updateXY()
+    -- Determine which coordinates to use
+       if number == 1 then
+          writeInteger("[Conquer.exe+13560C8] + 20", x1)
+          writeInteger("[Conquer.exe+13560C8] + 24", y1)
+          UDF1_CEListBox1.Items.Add("Updating to X1:"..x1.." Y1:"..y1)
+          sleep(10000)
+          number = 2
+          elseif number == 2 then
+           writeInteger("[Conquer.exe+13560C8] + 20", x2)
+            writeInteger("[Conquer.exe+13560C8] + 24", y2)
+            UDF1_CEListBox1.Items.Add("Updating to X2:"..x2.." Y2:"..y2)
+            sleep(10000)
+            number = 3
+            elseif number == 3 then
+            writeInteger("[Conquer.exe+13560C8] + 20", x3)
+            writeInteger("[Conquer.exe+13560C8] + 24", y3)
+            UDF1_CEListBox1.Items.Add("Updating to X3:"..x3.." Y3:"..y3)
+            sleep(10000)
+            number = 1
+            end
+end
+end
+
+
+-- Create and configure the timer for XY updates
+local xyTimer = createTimer(getMainForm())
+xyTimer.Interval = 15000  -- Update every 15 seconds (15000 ms)
+xyTimer.OnTimer = updateXY
+xyTimer.Enabled = false  -- Timer is initially disabled
+
+-- Show the form
+UDF1.Show()
